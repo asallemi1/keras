@@ -3,21 +3,21 @@ from iris_keras.it.brialemi_srl.flask.flask_manager import FlaskManager
 
 
 app = FlaskManager()
-app.run(host='0.0.0.0', port=5000, debug=True)
+app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
             # con 0.0.0.0 consente di accedere tramite sia: http://127.0.0.1:5000 e http://192.168.1.228:5000
             # al primo posso accedere solo dalla macchina dove gira il programma
             # al secondo posso accedere solo tramite la LAN
 
 print("Carico dataset")
-ds_mg = DatasetManager()
+#ds_mg = DatasetManager()
 print()
 
 print("stampa dataset")
-ds_mg.stampa()
+#ds_mg.stampa()
 print()
 
 print("Esplorazione del dataset")
-print(ds_mg.analisi())
+#print(ds_mg.analisi())
 print()
 
 print("Visualizzazione grafici")

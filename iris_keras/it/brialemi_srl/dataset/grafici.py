@@ -95,53 +95,5 @@ class Grafici:
         #plt.show()
 
         return fig
-    
-    def plot_elbow(self, data, max_k=10):
-        '''
-        Elbow Method per scegliere il numero ottimale di cluster.
-        '''
-        # drop class se presente, altrimenti KMeans si confonde
-        if "classe" in data.columns:
-            data = data.drop(columns=["classe"])
 
-        # standardizzazione
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(data)
-
-        inertia_values = []
-
-        K = range(1, max_k + 1)
-
-        for k in K:
-            model = KMeans(
-                n_clusters=k,
-                random_state=42,
-                n_init=10
-            )
-
-            model.fit(X_scaled)
-
-            inertia_values.append(model.inertia_)
-
-        fig, ax = plt.subplots(figsize=(8, 5))
-
-        ax.plot(
-            K,
-            inertia_values,
-            marker='o'
-        )
-
-        ax.set_xlabel("Numero di cluster (k)")
-        ax.set_ylabel("Inertia / WCSS")
-        ax.set_title("Elbow Method per KMeans")
-
-        ax.set_xticks(list(K))
-        ax.grid(True)
-
-        plt.tight_layout()
-
-        # plt.show()
-
-        return fig
-    
     # ADESSO NON MOSTRO I GRAFICI IN LOCALE

@@ -109,7 +109,7 @@ class DatasetAnalisi:
             data,
             n_components=None, # da fissare una volta scelto il numero di componenti principali da
             standardize=True):
-        data = data.drop(columns=["classe"], errors="ignore") # se c'è la colonna classe la tolgo, altrimenti ignoro l'errore
+        data = data.drop(columns=["Species"], errors="ignore") # se c'è la colonna classe la tolgo, altrimenti ignoro l'errore
         X = data.select_dtypes(include=np.number).copy()
 
         if standardize:

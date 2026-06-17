@@ -5,8 +5,8 @@ import pandas as pd
 from flask import Flask, jsonify, request, render_template_string
 import matplotlib.pyplot as plt
 
-from Seeds.it.Brialemi_SRL.dataset.dataset_manager import DatasetManager
-from Seeds.it.Brialemi_SRL.machine_learning.kmeans import Kmeans
+from iris_keras.it.Brialemi_SRL.dataset.dataset_manager import DatasetManager
+from iris_keras.it.Brialemi_SRL.keras.classificator import Keras
 
 class FlaskManager(object): # è una classe INTERFACCIA
     def __init__(self):
@@ -16,7 +16,7 @@ class FlaskManager(object): # è una classe INTERFACCIA
         self.ds_mg = DatasetManager()
 
         self.ds_mg.clean()
-        self.kmeans = Kmeans(self.ds_mg.get_datatrain(), n_clusters=3, use_pca=True)
+        self.keras = Keras(self.ds_mg.get_datatrain())
         # in questo modo sia il cleaning sia i modelli vengono stimati in automatico
 
     def run(self, **kwargs):
@@ -26,16 +26,14 @@ class FlaskManager(object): # è una classe INTERFACCIA
         @self.app.route('/') # in automatico il metodo è GET 
         def index():
             return jsonify({
-                'service': 'Kmeans API',
+                'service': 'Keras API',
                 'version': '1.0.0',
                 'endpoints': {
                     '/datasetshow': 'GET - Head dataset',
                     '/info': 'GET - Statistiche descrittive',
                     '/grafici': 'GET - Grafici di correlazione, distribuzioni e PCA',
                     '/correlazione': 'GET - Matrice di correlazione',
-                    '/valMod_kmeans': 'GET - Kmeans',
-                    '/prevedi_kmeans': 'POST - Previsioni su file di test',
-                    '/plot_kmeans': 'GET - Plot dei cluster'
+                    '/valMod_keras': 'GET - Keras'
                     },
             })
 
@@ -97,37 +95,9 @@ class FlaskManager(object): # è una classe INTERFACCIA
             return jsonify(self.ds_mg.correlazione())
 
         
-        @self.app.route('/valMod_kmeans')
-        def valMod_kmeans():
-            return jsonify(self.kmeans.get_val())
+        @self.app.route('/valMod_keras')
+        def valMod_keras():
+            return jsonify(self.keras.get_val())
 
-        @self.app.route('/prevedi_kmeans', methods=['POST'])
-        def prevedi_kmeans():
-            data = request.get_json()
-            osservazione = data.get("osservazione")
-            if osservazione is None:
-                return jsonify({"error": "Nessuna osservazione fornita"}), 400
 
-            try:
-                predizione = self.kmeans.prevedi(osservazione)
-                return jsonify({"predizione_cluster": predizione.tolist()})
-            except Exception as e:
-                return jsonify({"error": str(e)}), 500
-            
     
-        @self.app.route('/plot_kmeans')
-        def plot_kmeans():
-
-            img = self.kmeans.get_plot()
-
-            html = """
-            <h1>Grafico KMeans</h1>
-
-            <img src="data:image/png;base64,{{ img }}"
-            style="margin:10px;">
-            """
-
-            return render_template_string(
-            html,
-            img=img
-        )

@@ -1,7 +1,7 @@
 import pandas as pd
 from ucimlrepo import fetch_ucirepo
-from Seeds.it.Brialemi_SRL.dataset.dataset_analisi import DatasetAnalisi
-from Seeds.it.Brialemi_SRL.dataset.grafici import Grafici
+from iris_keras.it.Brialemi_SRL.dataset.dataset_analisi import DatasetAnalisi
+from iris_keras.it.Brialemi_SRL.dataset.grafici import Grafici
 from pathlib import Path
 
 class DatasetManager: # è un classe CONTROLLER delle altre classi, non fa niente dal punto di vista di calcoli
@@ -9,21 +9,13 @@ class DatasetManager: # è un classe CONTROLLER delle altre classi, non fa nient
 
         self.__dftrain = self.load_file(
             columns=[
-            "area",
-            "perimetro",
-            "compattezza",
-            "lunghezza_kernel",
-            "larghezza_kernel",
-            "asimmetria",
-            "lunghezza_solco", 
-            "classe"]
+            "Id",
+            "SepalLengthCm",
+            "SepalWidthCm",
+            "PetalLengthCm",
+            "PetalWidthCm",
+            "Species"]
         )
-        #C:/Users/emanu/OneDrive/Documenti/GitHub/Kmeans/Seeds/seeds_dataset.txt
-        #self.__dftest = self.load_file(
-        #    "C:/Users/alisi/OneDrive/Documenti/GitHub/Kmeans/Seeds/seeds_test.txt",
-        #    columns=[
-        #    "classe"]
-        #)
 
         self.__data_ana = DatasetAnalisi()
         self.__grafici = Grafici()
@@ -31,7 +23,7 @@ class DatasetManager: # è un classe CONTROLLER delle altre classi, non fa nient
 
     def load_file(self, columns=None, sep=r"\s+"):
             return pd.read_csv(
-                Path(__file__).resolve().parents[3] / "seeds_dataset.txt",
+                Path(__file__).resolve().parents[3] / "Iris.csv",
                 sep=sep,
                 header=None,
                 names=columns,
@@ -75,8 +67,7 @@ class DatasetManager: # è un classe CONTROLLER delle altre classi, non fa nient
         return {
             "correlation": correlation, 
             "hist": list_hist,
-            "PCA" : grafico_pca,
-            "grafico_kmeans" : grafico_kmeans
+            "PCA" : grafico_pca
         }
 
     def clean(self):

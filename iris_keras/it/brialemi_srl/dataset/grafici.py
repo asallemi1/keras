@@ -1,8 +1,6 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.cluster import KMeans
-from sklearn.preprocessing import StandardScaler
 
 class Grafici:
     def plot_correlation(self, data):
@@ -54,7 +52,7 @@ class Grafici:
         plt.title(f"Distribuzione di {col}")
         plt.show()
         return fig
-    
+
     def plot_explained_variance(self, pca_results):
         """
         Scree plot per la scelta del numero di componenti.

@@ -1,5 +1,5 @@
-from iris_keras.it.Brialemi_SRL.dataset.dataset_manager import DatasetManager
-from iris_keras.it.Brialemi_SRL.flask.flask_manager import FlaskManager
+from iris_keras.it.brialemi_srl.dataset.dataset_manager import DatasetManager
+from iris_keras.it.brialemi_srl.flask.flask_manager import FlaskManager
 
 
 app = FlaskManager()

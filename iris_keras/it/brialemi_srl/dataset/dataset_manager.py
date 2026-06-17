@@ -1,7 +1,6 @@
 import pandas as pd
-from ucimlrepo import fetch_ucirepo
-from iris_keras.it.Brialemi_SRL.dataset.dataset_analisi import DatasetAnalisi
-from iris_keras.it.Brialemi_SRL.dataset.grafici import Grafici
+from iris_keras.it.brialemi_srl.dataset.dataset_analisi import DatasetAnalisi
+from iris_keras.it.brialemi_srl.dataset.grafici import Grafici
 from pathlib import Path
 
 class DatasetManager: # è un classe CONTROLLER delle altre classi, non fa niente dal punto di vista di calcoli
@@ -21,11 +20,11 @@ class DatasetManager: # è un classe CONTROLLER delle altre classi, non fa nient
         self.__grafici = Grafici()
  
 
-    def load_file(self, columns=None, sep=r"\s+"):
+    def load_file(self, columns=None, sep=","):
             return pd.read_csv(
-                Path(__file__).resolve().parents[3] / "Iris.csv",
+                Path(__file__).resolve().parents[2] / "Iris.csv",
                 sep=sep,
-                header=None,
+                header=0,
                 names=columns,
                 engine="python"
                 )
@@ -59,7 +58,6 @@ class DatasetManager: # è un classe CONTROLLER delle altre classi, non fa nient
         correlation = self.__grafici.plot_correlation(self.__dftrain) # impossibile fare su categorici
         pca = self.__data_ana.pca(self.__dftrain)
         grafico_pca = self.__grafici.plot_explained_variance(pca)
-        grafico_kmeans = self.__grafici.plot_elbow(self.__dftrain)
         list_hist = []
         for col in self.__dftrain.columns:
             hist = self.__grafici.plot_hist(self.__dftrain, col)

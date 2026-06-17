@@ -5,8 +5,8 @@ import pandas as pd
 from flask import Flask, jsonify, request, render_template_string
 import matplotlib.pyplot as plt
 
-from iris_keras.it.Brialemi_SRL.dataset.dataset_manager import DatasetManager
-from iris_keras.it.Brialemi_SRL.keras.classificator import Keras
+from iris_keras.it.brialemi_srl.dataset.dataset_manager import DatasetManager
+from iris_keras.it.brialemi_srl.keras.classificator import Keras
 
 class FlaskManager(object): # è una classe INTERFACCIA
     def __init__(self):
@@ -32,6 +32,7 @@ class FlaskManager(object): # è una classe INTERFACCIA
                     '/datasetshow': 'GET - Head dataset',
                     '/info': 'GET - Statistiche descrittive',
                     '/grafici': 'GET - Grafici di correlazione, distribuzioni e PCA',
+                    '/grafici_keras': 'GET - Grafici loss/accuracy e confusion matrix',
                     '/correlazione': 'GET - Matrice di correlazione',
                     '/valMod_keras': 'GET - Keras'
                     },
@@ -57,6 +58,23 @@ class FlaskManager(object): # è una classe INTERFACCIA
         @self.app.route('/grafici')
         def grafici():
             grafici = self.ds_mg.grafici()
+            return self.__render_figures(grafici)
+
+        @self.app.route('/grafici_keras')
+        def grafici_keras():
+            grafici = self.keras.grafici()
+            return self.__render_figures(grafici)
+
+        @self.app.route('/correlazione')
+        def correlazione():
+            return jsonify(self.ds_mg.correlazione())
+
+        
+        @self.app.route('/valMod_keras')
+        def valMod_keras():
+            return jsonify(self.keras.get_val())
+
+    def __render_figures(self, grafici):
             figs = []
             for value in grafici.values(): # bisogna scomporre la scritta dall'immagine
                 if value is None:
@@ -89,15 +107,6 @@ class FlaskManager(object): # è una classe INTERFACCIA
 
             return render_template_string(html, images=images) #prende il template html e usa su tutte le immagini 
                                                                #trasformate in formato base64
-
-        @self.app.route('/correlazione')
-        def correlazione():
-            return jsonify(self.ds_mg.correlazione())
-
-        
-        @self.app.route('/valMod_keras')
-        def valMod_keras():
-            return jsonify(self.keras.get_val())
 
 
     

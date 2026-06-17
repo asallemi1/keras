@@ -1,10 +1,8 @@
 import numpy as np
-from scipy.stats import zscore, chi2_contingency, shapiro, normaltest
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.decomposition import PCA
-
-
+from sklearn.preprocessing import StandardScaler
+from scipy.stats import shapiro, normaltest
 
 class DatasetAnalisi:
 
@@ -12,15 +10,15 @@ class DatasetAnalisi:
         result = {}
         numeric_cols = data.select_dtypes(include=np.number).columns
         for col in numeric_cols:
-            Q1 = data[col].quantile(0.25)
-            Q3 = data[col].quantile(0.75)
-            IQR = Q3 - Q1
-            lower = Q1 - 1.5 * IQR
-            upper = Q3 + 1.5 * IQR
+            q1 = data[col].quantile(0.25)
+            q3 = data[col].quantile(0.75)
+            iqr = q3 - q1
+            lower = q1 - 1.5 * iqr
+            upper = q3 + 1.5 * iqr
             outliers_count = data[(data[col] < lower) | (data[col] > upper)].shape[0]
             result[col] = outliers_count
         return result
-    
+
     def outliers_zscore_per_col(self, data, threshold=3):
         result = {}
         numeric_cols = data.select_dtypes(include=np.number).columns
@@ -29,46 +27,33 @@ class DatasetAnalisi:
             if col_data.std() == 0:
                 result[col] = 0
                 continue
-            z_scores = zscore(col_data)
+            z_scores = (col_data - col_data.mean()) / col_data.std()
             outliers_count = np.sum(np.abs(z_scores) > threshold)
             result[col] = int(outliers_count)
         return result
-    
+
     def valori_stringhe(self, data):
-        cat_cols = data.select_dtypes(include=["object","string"]).columns
+        cat_cols = data.select_dtypes(include=["object", "string"]).columns
         string = ""
         for col in cat_cols:
             string += f"\n{col} ({data[col].nunique()} valori unici): {data[col].unique()}"
-        string = string.strip()
-        return string
+        return string.strip()
 
     def valori_nulli(self, data):
         return data.isnull().sum().sort_values(ascending=False)
 
-
     def clean_data(self, data):
-        data = data.drop_duplicates()
-        # gestione outlier   
-        # elimina caratteri strani
-        # gestire nan 
-        #data = data.replace('?', np.nan)
-
-        return data
-
-
+        return data.drop_duplicates()
 
     def correlazione(self, data):
         corr = data.corr(numeric_only=True)
         return corr.to_dict()
 
-
     def normality(self, data, alpha=0.05):
         numeric_cols = data.select_dtypes(include=np.number).columns
-
         risultati = []
 
         for col in numeric_cols:
-
             x = data[col].dropna()
 
             if len(x) < 8:
@@ -83,12 +68,9 @@ class DatasetAnalisi:
                 })
                 continue
 
-            # Shapiro per n <= 5000
             if len(x) <= 5000:
                 stat, p = shapiro(x)
                 test = "Shapiro-Wilk"
-
-            # D'Agostino-Pearson per n > 5000
             else:
                 stat, p = normaltest(x)
                 test = "D'Agostino-Pearson"
@@ -104,13 +86,10 @@ class DatasetAnalisi:
             })
 
         return risultati
-    
-    def pca(self,
-            data,
-            n_components=None, # da fissare una volta scelto il numero di componenti principali da
-            standardize=True):
-        data = data.drop(columns=["Species"], errors="ignore") # se c'è la colonna classe la tolgo, altrimenti ignoro l'errore
-        X = data.select_dtypes(include=np.number).copy()
+
+    def pca(self, data, n_components=None, standardize=True):
+        X = data.drop(columns=["Id", "Species"], errors="ignore")
+        X = X.select_dtypes(include=np.number).copy()
 
         if standardize:
             scaler = StandardScaler()
@@ -119,20 +98,18 @@ class DatasetAnalisi:
             X_scaled = X.values
 
         pca = PCA(n_components=n_components)
-
         scores = pca.fit_transform(X_scaled)
 
         loadings = pd.DataFrame(
             pca.components_.T,
             index=X.columns,
-            columns=[f"PC{i+1}" for i in range(pca.n_components_)]
+            columns=[f"PC{i + 1}" for i in range(pca.n_components_)]
         )
 
         explained_variance = pd.DataFrame({
-            "Component": [f"PC{i+1}" for i in range(pca.n_components_)],
+            "Component": [f"PC{i + 1}" for i in range(pca.n_components_)],
             "Explained Variance": pca.explained_variance_ratio_,
-            "Cumulative Variance":
-                np.cumsum(pca.explained_variance_ratio_)
+            "Cumulative Variance": np.cumsum(pca.explained_variance_ratio_)
         })
 
         return {
@@ -141,4 +118,3 @@ class DatasetAnalisi:
             "loadings": loadings.reset_index(names="Feature").to_dict(orient="records"),
             "explained_variance": explained_variance.to_dict(orient="records")
         }
-    

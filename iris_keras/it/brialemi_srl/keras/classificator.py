@@ -37,21 +37,36 @@ class Keras:
         X = X.select_dtypes(include=np.number)
         self.feature_columns = X.columns.tolist()
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X,
-            y_encoded,
-            test_size=0.2,
+        #X_train, X_test, y_train, y_test = train_test_split(
+        #    X,
+        #    y_encoded,
+        #    test_size=0.2,
+        #    random_state=42,
+        #    stratify=y_encoded
+        #)
+        X_train, X_temp, y_train, y_temp = train_test_split(
+            X, y_encoded,
+            test_size=0.3,
             random_state=42,
             stratify=y_encoded
         )
 
+        X_val, X_test, y_val, y_test = train_test_split(
+            X_temp, y_temp,
+            test_size=0.5,
+            random_state=42,
+            stratify=y_temp
+        )
+
         self.scaler = StandardScaler()
         X_train_scaled = self.scaler.fit_transform(X_train)
+        X_val_scaled = self.scaler.transform(X_val)
         X_test_scaled = self.scaler.transform(X_test)
 
         if self.use_pca:
             self.pca = PCA(n_components=2)
             X_train_scaled = self.pca.fit_transform(X_train_scaled)
+            X_val_scaled = self.pca.transform(X_val_scaled)
             X_test_scaled = self.pca.transform(X_test_scaled)
 
         model = keras.models.Sequential([
@@ -74,7 +89,8 @@ class Keras:
             y_train,
             epochs=200,
             batch_size=32,
-            verbose=0
+            verbose=0,
+            validation_data=(X_val_scaled, y_val)
         )
 
         y_pred_prob = model.predict(X_test_scaled, verbose=0)
@@ -89,6 +105,9 @@ class Keras:
         self.val_model = {
             "classi": self.label_encoder.classes_.tolist(),
             "model_summary": summary_buffer.getvalue(),
+            "n_train": int(len(y_train)),
+            "n_validation": int(len(y_val)),
+            "n_test": int(len(y_test)),
             "y_test_numerico": y_test.tolist(),
             "predizioni_probabilita": y_pred_prob.tolist(),
             "predizioni_numeriche": y_pred_encoded.tolist(),
@@ -109,19 +128,38 @@ class Keras:
         history = self.history.history
         epochs = range(1, len(history["loss"]) + 1)
 
-        fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+        has_validation = "val_loss" in history and "val_accuracy" in history
+        fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+        ax_loss_train, ax_acc_train = axes[0]
+        ax_loss_val, ax_acc_val = axes[1]
 
-        axes[0].plot(epochs, history["loss"], marker="o")
-        axes[0].set_title("Andamento loss")
-        axes[0].set_xlabel("Epoca")
-        axes[0].set_ylabel("Loss")
-        axes[0].grid(True)
+        ax_loss_train.plot(epochs, history["loss"], marker="o")
+        ax_loss_train.set_title("Andamento loss")
+        ax_loss_train.set_xlabel("Epoca")
+        ax_loss_train.set_ylabel("Loss - Training")
+        ax_loss_train.grid(True)
 
-        axes[1].plot(epochs, history["accuracy"], marker="o")
-        axes[1].set_title("Andamento accuracy")
-        axes[1].set_xlabel("Epoca")
-        axes[1].set_ylabel("Accuracy")
-        axes[1].grid(True)
+        ax_acc_train.plot(epochs, history["accuracy"], marker="o")
+        ax_acc_train.set_title("Andamento accuracy")
+        ax_acc_train.set_xlabel("Epoca")
+        ax_acc_train.set_ylabel("Accuracy - Training")
+        ax_acc_train.grid(True)
+
+        if has_validation:
+            ax_loss_val.plot(epochs, history["val_loss"], marker="o")
+            ax_loss_val.set_title("Andamento validation loss")
+            ax_loss_val.set_xlabel("Epoca")
+            ax_loss_val.set_ylabel("Loss - Validation")
+            ax_loss_val.grid(True)
+
+            ax_acc_val.plot(epochs, history["val_accuracy"], marker="o")
+            ax_acc_val.set_title("Andamento validation accuracy")
+            ax_acc_val.set_xlabel("Epoca")
+            ax_acc_val.set_ylabel("Accuracy - Validation")
+            ax_acc_val.grid(True)
+        else:
+            ax_loss_val.axis("off")
+            ax_acc_val.axis("off")
 
         plt.tight_layout()
         return fig
